@@ -12,7 +12,7 @@ def run_simulation(n_procs, n_threads, max_retries=2):
     
     # Ensure binary exists
     if not os.path.exists('../traffic_sim'):
-        print("ERROR: traffic_sim not found. Run 'make' first.")
+        print("ERROR: traffic_sim not found. Run 'make' in src/ directory first.")
         return None
     
     # Set environment
@@ -249,7 +249,7 @@ def main():
     print("=" * 60)
     
     # Check if we're in the right directory
-    if not os.path.exists('../traffic_sim') and not os.path.exists('../Makefile'):
+    if not os.path.exists('../traffic_sim') and not os.path.exists('../src'):
         print("\nERROR: Run this script from the 'visualization' directory")
         print("Usage: cd visualization && python3 visualize.py")
         sys.exit(1)
