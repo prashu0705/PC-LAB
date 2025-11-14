@@ -3,18 +3,24 @@ CXX = mpic++
 CXXFLAGS = -std=c++11 -fopenmp -O3 -Wall -Wextra
 TARGET = traffic_sim
 
+# Directories
+SRC_DIR = .
+BUILD_DIR = ../build
+BIN_DIR = ..
+
 # Source files
 SOURCES = main.cpp City.cpp
 HEADERS = City.h
 OBJECTS = $(SOURCES:.cpp=.o)
 
 # Default target
-all: $(TARGET)
+all: $(BIN_DIR)/$(TARGET)
 
 # Build executable
-$(TARGET): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
-	@echo "Build complete: ./$(TARGET)"
+$(BIN_DIR)/$(TARGET): $(OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(CXXFLAGS) -o $(BIN_DIR)/$(TARGET) $(OBJECTS)
+	@echo "Build complete: $(BIN_DIR)/$(TARGET)"
 
 # Compile object files
 %.o: %.cpp $(HEADERS)
@@ -22,41 +28,41 @@ $(TARGET): $(OBJECTS)
 
 # Run with different configurations
 run-serial:
-	mpirun -np 1 ./$(TARGET)
+	cd $(BIN_DIR) && mpirun -np 1 ./$(TARGET)
 
 run-mpi:
-	mpirun -np 4 ./$(TARGET)
+	cd $(BIN_DIR) && mpirun -np 4 ./$(TARGET)
 
 run-hybrid:
-	export OMP_NUM_THREADS=2 && mpirun -np 2 ./$(TARGET)
+	cd $(BIN_DIR) && export OMP_NUM_THREADS=2 && mpirun -np 2 ./$(TARGET)
 
 # Test different configurations
-test: $(TARGET)
+test: $(BIN_DIR)/$(TARGET)
 	@echo "=== Testing Serial ==="
-	@export OMP_NUM_THREADS=1 && mpirun -np 1 ./$(TARGET)
+	@cd $(BIN_DIR) && export OMP_NUM_THREADS=1 && mpirun -np 1 ./$(TARGET)
 	@echo "\n=== Testing 2 MPI Processes ==="
-	@export OMP_NUM_THREADS=1 && mpirun -np 2 ./$(TARGET)
+	@cd $(BIN_DIR) && export OMP_NUM_THREADS=1 && mpirun -np 2 ./$(TARGET)
 	@echo "\n=== Testing Hybrid (2 procs x 2 threads) ==="
-	@export OMP_NUM_THREADS=2 && mpirun -np 2 ./$(TARGET)
+	@cd $(BIN_DIR) && export OMP_NUM_THREADS=2 && mpirun -np 2 ./$(TARGET)
 
 # Quick test with few iterations (for debugging)
-test-quick: $(TARGET)
+test-quick: $(BIN_DIR)/$(TARGET)
 	@echo "Quick test (modify simulation_steps to 10 in main.cpp first)"
-	mpirun -np 2 ./$(TARGET)
+	cd $(BIN_DIR) && mpirun -np 2 ./$(TARGET)
 
 # Visualization
 visualize:
-	cd visualization && python3 visualize.py
+	cd $(BIN_DIR)/visualization && python3 visualize.py
 
 # Clean build artifacts
 clean:
-	rm -f $(TARGET) $(OBJECTS) car_positions.csv
-	rm -f visualization/*.png visualization/*.gif
+	rm -f $(BIN_DIR)/$(TARGET) $(OBJECTS) $(BIN_DIR)/car_positions.csv
+	rm -f *.o
 
 # Deep clean (including visualization outputs)
 distclean: clean
-	rm -f *.csv *.dat
-	rm -f visualization/*.png visualization/*.gif
+	rm -f $(BIN_DIR)/*.csv $(BIN_DIR)/*.dat
+	rm -f $(BIN_DIR)/visualization/*.png $(BIN_DIR)/visualization/*.gif
 
 # Check if required tools are installed
 check-env:
